@@ -1,0 +1,12 @@
+{
+  "name": "simple-cms-node",
+  "version": "1.0.0",
+  "description": "Simple CMS with Node.js and Express for Vercel",
+  "main": "api/index.js",
+  "scripts": {
+    "start": "node api/index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
