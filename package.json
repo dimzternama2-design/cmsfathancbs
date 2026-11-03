@@ -1,12 +1,21 @@
 {
-  "name": "simple-cms-node",
+  "name": "abzah-cms",
   "version": "1.0.0",
-  "description": "Simple CMS with Node.js and Express for Vercel",
-  "main": "api/index.js",
+  "description": "Abzah CMS — membaca dan menulis adalah nutrisi otak",
+  "main": "index.js",
   "scripts": {
-    "start": "node api/index.js"
+    "start": "node api/index.js",
+    "dev": "node api/index.js"
   },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": ["cms", "firebase", "express", "blog"],
+  "license": "MIT",
   "dependencies": {
-    "express": "^4.19.2"
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "firebase-admin": "^13.0.2"
   }
 }

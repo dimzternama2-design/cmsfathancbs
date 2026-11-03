@@ -5,51 +5,70 @@ const admin = require('firebase-admin');
 require('dotenv').config();
 
 // Inisialisasi Firebase Admin
-if (!admin.apps.length) {
-  let serviceAccount;
-  
-  // 1) Satu variabel berisi JSON service account lengkap
-  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+let serviceAccount;
+
+// 1) Satu variabel berisi JSON service account lengkap
+if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+  try {
     serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-  } else if (
-    // 2) Kredensial terpisah (umum di Vercel / Railway / Render)
+  } catch (err) {
+    console.error('Firebase: FIREBASE_SERVICE_ACCOUNT tidak valid JSON:', err.message);
+  }
+}
+
+// 2) Kredensial terpisah (umum di Vercel / Railway / Render)
+if (!serviceAccount &&
     process.env.FIREBASE_PROJECT_ID &&
     process.env.FIREBASE_CLIENT_EMAIL &&
     process.env.FIREBASE_PRIVATE_KEY
-  ) {
-    serviceAccount = {
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      // private key dari env biasanya masih berupa \n literal dan kadang dibungkus tanda kutip
-      privateKey: process.env.FIREBASE_PRIVATE_KEY
-        .replace(/^["']|["']$/g, '')
-        .replace(/\\n/g, '\n')
-    };
-  } else {
-    // 3) File service account lokal
-    try {
-      serviceAccount = require(path.join(__dirname, 'serviceAccountKey.json'));
-    } catch (err) {
-      throw new Error(
-        'Kredensial Firebase tidak ditemukan. Isi FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL dan FIREBASE_PRIVATE_KEY ' +
-        '(atau FIREBASE_SERVICE_ACCOUNT), atau sediakan serviceAccountKey.json di root proyek.'
-      );
-    }
-  }
-
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
+) {
+  serviceAccount = {
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+    privateKey: process.env.FIREBASE_PRIVATE_KEY
+      .replace(/^["'\ufeff]|["'\ufeff]$/g, '')
+      .replace(/\\n/g, '\n')
+  };
 }
 
-const db = admin.firestore();
+let initError = null;
+
+if (!serviceAccount) {
+  try {
+    serviceAccount = require(path.join(__dirname, 'serviceAccountKey.json')); // Opsional untuk lokal
+  } catch (err) {
+    initError = 'Kredensial Firebase tidak ditemukan. Isi FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY (atau FIREBASE_SERVICE_ACCOUNT), atau sediakan serviceAccountKey.json di root proyek.';
+  }
+}
+
+if (serviceAccount && !admin.apps.length) {
+  try {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount)
+    });
+    console.log('Firebase Admin berjalan.');
+  } catch (err) {
+    initError = 'Firebase gagal diinisialisasi: ' + err.message;
+  }
+}
+
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
 // Sajikan halaman depan (Abzah CMS) beserta asetnya dari folder public
-app.use(express.static(path.join(__dirname, 'public')));
+const publicPath = path.resolve(__dirname, '..', 'public');
+app.use(express.static(publicPath));
+
+// Middleware untuk merespons error inisialisasi Firebase dengan perasaan yang jelas
+app.use((req, res, next) => {
+  if (initError) {
+    console.error('[Firebase]', initError);
+    return res.status(503).json({ success: false, error: 'Server belum siap: ' + initError });
+  }
+  next();
+});
 
 // 1. GET: Ambil semua artikel/konten
 app.get('/api/posts', async (req, res) => {
@@ -123,11 +142,25 @@ app.delete('/api/posts/:id', async (req, res) => {
   }
 });
 
+// 6. GET: Uji koneksi (hanya untuk debugging)
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    success: true,
+    ready: !initError,
+    env: {
+      hasFirebaseServiceAccount: !!process.env.FIREBASE_SERVICE_ACCOUNT,
+      hasFirebaseProjectId: !!process.env.FIREBASE_PROJECT_ID,
+      hasFirebaseClientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
+      hasFirebasePrivateKey: !!process.env.FIREBASE_PRIVATE_KEY
+    }
+  });
+});
+
 // Export untuk Vercel Serverless
 module.exports = app;
 
 // Jalankan server lokal jika tidak di Vercel
-if (process.env.NODE_ENV !== 'production') {
+if (require.main === module) {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
