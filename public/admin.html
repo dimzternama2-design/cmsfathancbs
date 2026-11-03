@@ -1,201 +1,606 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Simple CMS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Panel Admin — Abzah CMS</title>
+<style>
+  :root {
+    --coral: #ff6582;
+    --coral-dark: #e94d6b;
+    --navy: #1b2a4a;
+    --muted: #6b7a90;
+    --cream: #fff7f2;
+    --line: #f0e2da;
+    --ok: #2f9e6f;
+    --danger: #e0455f;
+    --radius: 18px;
+    --shadow: 0 18px 40px rgba(27, 42, 74, 0.10);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", sans-serif;
+    background: var(--cream);
+    color: var(--navy);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- Navbar ---------- */
+  header {
+    background: #fff;
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+
+  .nav {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0.95rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--navy);
+    text-decoration: none;
+  }
+
+  .brand-mark {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: var(--coral);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 1rem;
+    font-weight: 800;
+  }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0.65rem 1.25rem;
+    border-radius: 999px;
+    border: 2px solid transparent;
+    font-family: inherit;
+    font-size: 0.93rem;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  .btn-primary {
+    background: var(--coral);
+    color: #fff;
+    box-shadow: 0 12px 26px rgba(255, 101, 130, 0.32);
+  }
+
+  .btn-primary:hover { background: var(--coral-dark); transform: translateY(-2px); }
+
+  .btn-ghost {
+    background: #fff;
+    color: var(--navy);
+    border-color: var(--navy);
+  }
+
+  .btn-ghost:hover { background: var(--navy); color: #fff; }
+
+  .btn-danger {
+    background: #fff;
+    color: var(--danger);
+    border-color: rgba(224, 69, 95, 0.35);
+  }
+
+  .btn-danger:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+
+  .btn-small { padding: 0.45rem 0.9rem; font-size: 0.83rem; }
+
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  /* ---------- Layout ---------- */
+  main {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 2.25rem 1.25rem 4rem;
+  }
+
+  .page-head { margin-bottom: 1.75rem; }
+
+  .badge {
+    display: inline-block;
+    background: rgba(255, 101, 130, 0.12);
+    color: var(--coral-dark);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    margin-bottom: 0.85rem;
+  }
+
+  h1 {
+    margin: 0 0 0.4rem;
+    font-size: clamp(1.5rem, 3vw, 2.1rem);
+    letter-spacing: -0.02em;
+  }
+
+  .page-head p { margin: 0; color: var(--muted); font-size: 0.96rem; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+  }
+
+  .card h2 {
+    margin: 0 0 1.1rem;
+    font-size: 1.05rem;
+    letter-spacing: -0.01em;
+  }
+
+  /* ---------- Form ---------- */
+  .field { margin-bottom: 1rem; }
+
+  .field label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+  }
+
+  .field input,
+  .field textarea {
+    width: 100%;
+    padding: 0.72rem 0.9rem;
+    font-family: inherit;
+    font-size: 0.95rem;
+    color: var(--navy);
+    background: #fffdfc;
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    outline: none;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  .field input:focus,
+  .field textarea:focus {
+    border-color: var(--coral);
+    box-shadow: 0 0 0 3px rgba(255, 101, 130, 0.15);
+  }
+
+  .field textarea { min-height: 180px; resize: vertical; line-height: 1.6; }
+
+  .form-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-top: 1.25rem;
+  }
+
+  /* ---------- Messages ---------- */
+  .message {
+    display: none;
+    margin-bottom: 1rem;
+    padding: 0.7rem 0.95rem;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    line-height: 1.45;
+  }
+
+  .message.show { display: block; }
+
+  .message.ok { background: rgba(47, 158, 111, 0.12); color: #1f7d55; }
+
+  .message.error { background: rgba(224, 69, 95, 0.12); color: #b52b41; }
+
+  /* ---------- Post list ---------- */
+  .list-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .list-head h2 { margin: 0; }
+
+  .counter {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--muted);
+    background: var(--cream);
+    border-radius: 999px;
+    padding: 0.3rem 0.7rem;
+  }
+
+  .posts { display: grid; gap: 0.85rem; }
+
+  .post {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 1rem 1.05rem;
+    background: #fffdfc;
+    transition: border-color 0.18s ease, background 0.18s ease;
+  }
+
+  .post:hover { border-color: rgba(255, 101, 130, 0.5); background: #fff; }
+
+  .post h3 {
+    margin: 0 0 0.3rem;
+    font-size: 1rem;
+    line-height: 1.35;
+  }
+
+  .post-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 0.55rem;
+  }
+
+  .post-excerpt {
+    margin: 0 0 0.85rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  .post-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+  .empty-state {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.92rem;
+    padding: 2rem 1rem;
+    border: 1px dashed var(--line);
+    border-radius: 14px;
+  }
+
+  @media (max-width: 880px) {
+    .grid { grid-template-columns: 1fr; }
+    main { padding-top: 1.75rem; }
+  }
+</style>
 </head>
-<body class="bg-gray-100 text-gray-800 font-sans">
-    <div class="max-w-3xl mx-auto p-6">
-        <header class="mb-8 flex items-center justify-between">
-            <div>
-                <h1 class="text-3xl font-bold text-blue-600">Simple CMS <span class="text-base font-semibold text-gray-400">/ Admin</span></h1>
-                <p class="text-sm text-gray-500">Kelola artikel Anda dengan mudah</p>
-            </div>
-            <div class="flex items-center gap-3">
-                <span id="userLabel" class="hidden text-sm text-gray-500"></span>
-                <button id="logoutBtn" onclick="logout()" class="hidden text-sm font-medium text-red-500 hover:text-red-700 border border-red-200 rounded-md px-3 py-1.5 hover:bg-red-50 transition">
-                    Keluar
-                </button>
-                <a href="/" class="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline">&larr; Lihat Situs</a>
-            </div>
-        </header>
+<body>
+  <header>
+    <div class="nav">
+      <a class="brand" href="/">
+        <span class="brand-mark">A</span>
+        Abzah CMS
+      </a>
+      <div class="nav-actions">
+        <a class="btn btn-ghost btn-small" href="/">Beranda</a>
+        <a class="btn btn-primary btn-small" href="#form-card">Tulis Konten</a>
+      </div>
+    </div>
+  </header>
 
-        <!-- Form Login -->
-        <section id="loginSection" class="hidden bg-white p-6 rounded-lg shadow-md mb-8 max-w-md mx-auto">
-            <h2 class="text-xl font-semibold mb-4 text-center">Login Admin</h2>
-            <form id="loginForm" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
-                    <input type="text" id="username" required autocomplete="username"
-                           class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                    <input type="password" id="password" required autocomplete="current-password"
-                           class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <p id="loginError" class="hidden text-sm text-red-600"></p>
-                <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
-                    Masuk
-                </button>
-            </form>
-        </section>
-
-        <!-- Panel Kelola Artikel (hanya untuk admin) -->
-        <div id="adminSection" class="hidden">
-            <!-- Form Tambah Artikel -->
-            <section class="bg-white p-6 rounded-lg shadow-md mb-8">
-                <h2 class="text-xl font-semibold mb-4">Tambah Artikel Baru</h2>
-                <form id="postForm" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Judul Artikel</label>
-                        <input type="text" id="title" required class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Konten</label>
-                        <textarea id="content" rows="4" required class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-                    </div>
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">Simpan Artikel</button>
-                </form>
-            </section>
-
-            <!-- Daftar Artikel -->
-            <section>
-                <h2 class="text-xl font-semibold mb-4">Kelola Artikel</h2>
-                <div id="postsList" class="space-y-4">
-                    <p class="text-gray-500 text-center">Memuat artikel...</p>
-                </div>
-            </section>
-        </div>
+  <main>
+    <div class="page-head">
+      <span class="badge">Panel Admin</span>
+      <h1>Kelola Konten Abzah CMS</h1>
+      <p>Tambah, ubah, dan hapus artikel. Semua perubahan langsung tersimpan ke Firestore.</p>
     </div>
 
-    <script>
-        let authenticated = false;
+    <div class="grid">
+      <!-- ===== Form ===== -->
+      <section class="card" id="form-card">
+        <h2 id="form-title">Tulis Konten Baru</h2>
 
-        function escapeHtml(text) {
-            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-            return String(text).replace(/[&<>"']/g, m => map[m]);
-        }
+        <div class="message" id="form-message" role="status" aria-live="polite"></div>
 
-        function showAdmin(isAdmin, username) {
-            authenticated = isAdmin;
-            document.getElementById('loginSection').classList.toggle('hidden', isAdmin);
-            document.getElementById('adminSection').classList.toggle('hidden', !isAdmin);
-            document.getElementById('logoutBtn').classList.toggle('hidden', !isAdmin);
-            const label = document.getElementById('userLabel');
-            label.classList.toggle('hidden', !isAdmin);
-            label.textContent = isAdmin ? `Masuk sebagai ${username || 'admin'}` : '';
-            if (isAdmin) {
-                fetchPosts();
-            } else {
-                document.getElementById('postsList').innerHTML =
-                    '<p class="text-gray-500 text-center">Login untuk mengelola artikel.</p>';
-            }
-        }
+        <form id="post-form" novalidate>
+          <div class="field">
+            <label for="title">Judul</label>
+            <input type="text" id="title" name="title" placeholder="Judul artikel" required />
+          </div>
 
-        async function checkAuth() {
-            try {
-                const res = await fetch('/api/me', { cache: 'no-store' });
-                const data = await res.json();
-                showAdmin(Boolean(data.authenticated), data.username);
-            } catch (err) {
-                showAdmin(false);
-            }
-        }
+          <div class="field">
+            <label for="author">Penulis</label>
+            <input type="text" id="author" name="author" placeholder="Admin" />
+          </div>
 
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const errorEl = document.getElementById('loginError');
-            errorEl.classList.add('hidden');
+          <div class="field">
+            <label for="content">Isi Konten</label>
+            <textarea id="content" name="content" placeholder="Tulis isi artikel di sini..." required></textarea>
+          </div>
 
-            const res = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    username: document.getElementById('username').value,
-                    password: document.getElementById('password').value
-                })
-            });
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="submit-btn">Simpan Konten</button>
+            <button type="button" class="btn btn-ghost" id="cancel-btn" hidden>Batal</button>
+          </div>
+        </form>
+      </section>
 
-            if (res.ok) {
-                const data = await res.json();
-                document.getElementById('loginForm').reset();
-                showAdmin(true, data.username);
-            } else {
-                const data = await res.json().catch(() => ({}));
-                errorEl.textContent = data.error || 'Login gagal';
-                errorEl.classList.remove('hidden');
-            }
+      <!-- ===== Daftar konten ===== -->
+      <section class="card">
+        <div class="list-head">
+          <h2>Daftar Konten</h2>
+          <span class="counter" id="counter">0 konten</span>
+        </div>
+
+        <div class="message" id="list-message" role="status" aria-live="polite"></div>
+
+        <div class="posts" id="posts">
+          <div class="empty-state">Memuat konten...</div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+<script>
+(function () {
+  'use strict';
+
+  var API = '/api/posts';
+
+  var form = document.getElementById('post-form');
+  var titleInput = document.getElementById('title');
+  var authorInput = document.getElementById('author');
+  var contentInput = document.getElementById('content');
+  var submitBtn = document.getElementById('submit-btn');
+  var cancelBtn = document.getElementById('cancel-btn');
+  var formTitle = document.getElementById('form-title');
+  var formMessage = document.getElementById('form-message');
+  var listMessage = document.getElementById('list-message');
+  var postsBox = document.getElementById('posts');
+  var counter = document.getElementById('counter');
+
+  var editingId = null;
+  var posts = [];
+
+  function showMessage(el, text, type) {
+    el.textContent = text;
+    el.className = 'message show ' + (type || 'ok');
+  }
+
+  function hideMessage(el) {
+    el.textContent = '';
+    el.className = 'message';
+  }
+
+  function formatDate(value) {
+    if (!value) return 'Baru saja';
+
+    var date = null;
+
+    if (typeof value === 'string' || typeof value === 'number') {
+      date = new Date(value);
+    } else if (typeof value === 'object') {
+      // Firestore Timestamp dari Admin SDK: { _seconds, _nanoseconds }
+      if (typeof value._seconds === 'number') {
+        date = new Date(value._seconds * 1000);
+      } else if (typeof value.seconds === 'number') {
+        date = new Date(value.seconds * 1000);
+      }
+    }
+
+    if (!date || isNaN(date.getTime())) return 'Baru saja';
+
+    return date.toLocaleString('id-ID', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  function excerpt(text) {
+    var clean = String(text || '').replace(/\s+/g, ' ').trim();
+    if (clean.length <= 150) return clean;
+    return clean.slice(0, 150) + '...';
+  }
+
+  function renderPosts() {
+    postsBox.innerHTML = '';
+
+    counter.textContent = posts.length + ' konten';
+
+    if (!posts.length) {
+      var empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.textContent = 'Belum ada konten. Tulis artikel pertama Anda di form sebelah.';
+      postsBox.appendChild(empty);
+      return;
+    }
+
+    posts.forEach(function (post) {
+      var item = document.createElement('article');
+      item.className = 'post';
+
+      var heading = document.createElement('h3');
+      heading.textContent = post.title || '(Tanpa judul)';
+
+      var meta = document.createElement('div');
+      meta.className = 'post-meta';
+      meta.textContent = (post.author || 'Admin') + ' • ' + formatDate(post.createdAt);
+
+      var body = document.createElement('p');
+      body.className = 'post-excerpt';
+      body.textContent = excerpt(post.content) || 'Tanpa isi.';
+
+      var actions = document.createElement('div');
+      actions.className = 'post-actions';
+
+      var editBtn = document.createElement('button');
+      editBtn.type = 'button';
+      editBtn.className = 'btn btn-ghost btn-small';
+      editBtn.textContent = 'Ubah';
+      editBtn.addEventListener('click', function () { startEdit(post); });
+
+      var deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.className = 'btn btn-danger btn-small';
+      deleteBtn.textContent = 'Hapus';
+      deleteBtn.addEventListener('click', function () { removePost(post, deleteBtn); });
+
+      actions.appendChild(editBtn);
+      actions.appendChild(deleteBtn);
+
+      item.appendChild(heading);
+      item.appendChild(meta);
+      item.appendChild(body);
+      item.appendChild(actions);
+
+      postsBox.appendChild(item);
+    });
+  }
+
+  function loadPosts() {
+    hideMessage(listMessage);
+    postsBox.innerHTML = '<div class="empty-state">Memuat konten...</div>';
+
+    fetch(API, { headers: { Accept: 'application/json' } })
+      .then(function (res) {
+        if (!res.ok) throw new Error('Gagal memuat konten (HTTP ' + res.status + ')');
+        return res.json();
+      })
+      .then(function (payload) {
+        posts = Array.isArray(payload && payload.data) ? payload.data : [];
+        renderPosts();
+      })
+      .catch(function (err) {
+        posts = [];
+        renderPosts();
+        showMessage(listMessage, err.message, 'error');
+      });
+  }
+
+  function startEdit(post) {
+    editingId = post.id;
+    formTitle.textContent = 'Ubah Konten';
+    submitBtn.textContent = 'Perbarui Konten';
+    cancelBtn.hidden = false;
+
+    titleInput.value = post.title || '';
+    authorInput.value = post.author || '';
+    contentInput.value = post.content || '';
+
+    hideMessage(formMessage);
+    document.getElementById('form-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    titleInput.focus();
+  }
+
+  function resetForm() {
+    editingId = null;
+    formTitle.textContent = 'Tulis Konten Baru';
+    submitBtn.textContent = 'Simpan Konten';
+    cancelBtn.hidden = true;
+    form.reset();
+    hideMessage(formMessage);
+  }
+
+  function removePost(post, button) {
+    if (!window.confirm('Hapus konten "' + (post.title || 'Tanpa judul') + '"?')) return;
+
+    button.disabled = true;
+
+    fetch(API + '/' + encodeURIComponent(post.id), { method: 'DELETE' })
+      .then(function (res) {
+        if (!res.ok) throw new Error('Gagal menghapus konten (HTTP ' + res.status + ')');
+        return res.json();
+      })
+      .then(function () {
+        if (editingId === post.id) resetForm();
+        showMessage(listMessage, 'Konten berhasil dihapus.', 'ok');
+        loadPosts();
+      })
+      .catch(function (err) {
+        button.disabled = false;
+        showMessage(listMessage, err.message, 'error');
+      });
+  }
+
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+
+    var title = titleInput.value.trim();
+    var content = contentInput.value.trim();
+    var author = authorInput.value.trim();
+
+    if (!title || !content) {
+      showMessage(formMessage, 'Judul dan isi konten wajib diisi.', 'error');
+      return;
+    }
+
+    var payload = { title: title, content: content, author: author || 'Admin' };
+    var isEdit = Boolean(editingId);
+
+    submitBtn.disabled = true;
+    hideMessage(formMessage);
+
+    fetch(isEdit ? API + '/' + encodeURIComponent(editingId) : API, {
+      method: isEdit ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(function (res) {
+        return res.json().then(function (data) {
+          if (!res.ok) throw new Error(data && data.error ? data.error : 'Gagal menyimpan (HTTP ' + res.status + ')');
+          return data;
         });
+      })
+      .then(function () {
+        resetForm();
+        showMessage(formMessage, isEdit ? 'Konten berhasil diperbarui.' : 'Konten berhasil ditambahkan.', 'ok');
+        loadPosts();
+      })
+      .catch(function (err) {
+        showMessage(formMessage, err.message, 'error');
+      })
+      .finally(function () {
+        submitBtn.disabled = false;
+      });
+  });
 
-        async function logout() {
-            await fetch('/api/logout', { method: 'POST' });
-            showAdmin(false);
-        }
+  cancelBtn.addEventListener('click', resetForm);
 
-        async function fetchPosts() {
-            const container = document.getElementById('postsList');
-            try {
-                const res = await fetch('/api/posts');
-                const posts = await res.json();
-
-                if (!Array.isArray(posts) || posts.length === 0) {
-                    container.innerHTML = '<p class="text-gray-500 text-center">Belum ada artikel.</p>';
-                    return;
-                }
-
-                container.innerHTML = posts.map(post => `
-                    <div class="bg-white p-5 rounded-lg shadow-sm border flex justify-between items-start">
-                        <div>
-                            <h3 class="text-lg font-bold text-gray-800">${escapeHtml(post.title)}</h3>
-                            <p class="text-xs text-gray-400 mb-2">${new Date(post.date).toLocaleString('id-ID')}</p>
-                            <p class="text-gray-600 whitespace-pre-line">${escapeHtml(post.content)}</p>
-                        </div>
-                        <button onclick="deletePost(${post.id})" class="text-red-500 hover:text-red-700 text-sm font-medium ml-4">Hapus</button>
-                    </div>
-                `).join('');
-            } catch (err) {
-                console.error('Gagal memuat postingan:', err);
-            }
-        }
-
-        document.getElementById('postForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const title = document.getElementById('title').value;
-            const content = document.getElementById('content').value;
-
-            const res = await fetch('/api/posts', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, content })
-            });
-
-            if (res.ok) {
-                document.getElementById('postForm').reset();
-                fetchPosts();
-            } else if (res.status === 401) {
-                showAdmin(false);
-            } else {
-                alert('Gagal menyimpan artikel');
-            }
-        });
-
-        async function deletePost(id) {
-            if (!confirm('Apakah Anda yakin ingin menghapus artikel ini?')) return;
-
-            const res = await fetch(`/api/posts/${id}`, { method: 'DELETE' });
-            if (res.ok) {
-                fetchPosts();
-            } else if (res.status === 401) {
-                showAdmin(false);
-            } else {
-                alert('Gagal menghapus artikel');
-            }
-        }
-
-        checkAuth();
-    </script>
+  loadPosts();
+})();
+</script>
 </body>
 </html>
