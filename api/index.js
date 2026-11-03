@@ -8,11 +8,33 @@ require('dotenv').config();
 if (!admin.apps.length) {
   let serviceAccount;
   
-  // Mendukung kredensial dari Environment Variable (untuk Vercel) atau file lokal
+  // 1) Satu variabel berisi JSON service account lengkap
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  } else if (
+    // 2) Kredensial terpisah (umum di Vercel / Railway / Render)
+    process.env.FIREBASE_PROJECT_ID &&
+    process.env.FIREBASE_CLIENT_EMAIL &&
+    process.env.FIREBASE_PRIVATE_KEY
+  ) {
+    serviceAccount = {
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      // private key dari env biasanya masih berupa \n literal dan kadang dibungkus tanda kutip
+      privateKey: process.env.FIREBASE_PRIVATE_KEY
+        .replace(/^["']|["']$/g, '')
+        .replace(/\\n/g, '\n')
+    };
   } else {
-    serviceAccount = require('./serviceAccountKey.json'); // Opsional untuk lokal
+    // 3) File service account lokal
+    try {
+      serviceAccount = require(path.join(__dirname, 'serviceAccountKey.json'));
+    } catch (err) {
+      throw new Error(
+        'Kredensial Firebase tidak ditemukan. Isi FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL dan FIREBASE_PRIVATE_KEY ' +
+        '(atau FIREBASE_SERVICE_ACCOUNT), atau sediakan serviceAccountKey.json di root proyek.'
+      );
+    }
   }
 
   admin.initializeApp({
@@ -35,7 +57,7 @@ app.get('/api/posts', async (req, res) => {
     const snapshot = await db.collection('posts').orderBy('createdAt', 'desc').get();
     const posts = [];
     snapshot.forEach(doc => {
-      posts.id = doc.id, ...doc.data();
+      posts.push({ id: doc.id, ...doc.data() });
     });
     res.status(200).json({ success: true, data: posts });
   } catch (error) {
